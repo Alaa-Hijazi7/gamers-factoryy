@@ -218,7 +218,7 @@ export const SingleNewsStyle = styled.figure`
   :hover {
     .background-image {
       transform: translate(-2rem, -3rem);
-      box-shadow: 10px 10px 10px 4pt #${props => props.randomColor};
+      box-shadow: 9px 12px 0px 0pt #${props => props.randomColor};
       transition: all 0.2s;
     }
   }

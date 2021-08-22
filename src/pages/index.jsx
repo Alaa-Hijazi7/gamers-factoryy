@@ -33,6 +33,45 @@ const customStyles = {
   }
 };
 
+function CategoryComponent() {
+  const [category, setCategory] = useState(0);
+  const [games, setGames] = useState([]);
+
+  useEffect(() => {
+    axios.get("/games").then(response => setGames(response.data.message));
+  }, []);
+
+  function SingleNews({ data }) {
+    return (
+      <SingleNewsStyle randomColor={Math.floor(Math.random() * 16777215).toString(16)} background={`${axios.defaults.baseURL}/games/${data.gameID}/articles/${data.id}/image`}>
+        <div className="background-image" />
+        <div>
+          <h1>{data.title}</h1>
+          <p>{data.description}</p>
+        </div>
+      </SingleNewsStyle>
+    )
+  }
+
+  return (
+    <>
+      <header>
+        <h1>{category === 0 ? "All Categories" : games[category - 1].name}</h1>
+        <ul>
+          <li onClick={() => setCategory(0)} className={category === 0 ? "active-category" : ""}>All categories</li>
+          {games.map(({ name }, index) => (
+            <li className={category === index + 1 ? "active-category" : ""} onClick={() => setCategory(index + 1)} key={index}>{name}</li>
+          ))}
+        </ul>
+      </header>
+      <h2>News &gt;</h2>
+      <div className="news-container">
+        {category === 0 ? games.map(game => ({ ...game.articles[0], gameID: game._id, id: 0 })).map((article, index) => <SingleNews key={index} data={article} />) : games[category - 1].articles.map((article, index) => <SingleNews key={index} data={{ ...article, gameID: games[category - 1]._id, id: index }} />)}
+      </div>
+    </>
+  )
+}
+
 export default function Home() {
   const [state, setState] = useContext(Context);
   const [isTablet, changeIsTablet] = useState();
@@ -40,8 +79,6 @@ export default function Home() {
   const [openAsideGroups, setOpenAsideGroups] = useState(false);
   const [activePrivetMessage, setActivePrivetMessage] = useState();
   const [openChat, setOpenChat] = useState(false);
-  const [category, setCategory] = useState(0);
-  const [games, setGames] = useState([]);
   const [groups, setGroups] = useState([]);
   const [createRoom, setCreateRoom] = useState(false);
   const socket = useMemo(() => io(axios.defaults.baseURL, { auth: { token: state.token } }), [state.token]);
@@ -56,7 +93,6 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    axios.get("/games").then(response => setGames(response.data.message));
     axios.get("/groups").then(response => setGroups(response.data.message)).catch(() => undefined);
   }, [state.player]);
 
@@ -121,17 +157,6 @@ export default function Home() {
     )
   }
 
-  function SingleNews({ data }) {
-    return (
-      <SingleNewsStyle randomColor={Math.floor(Math.random() * 16777215).toString(16)} background={`${axios.defaults.baseURL}/games/${data.gameID}/articles/${data.id}/image`}>
-        <div className="background-image" />
-        <div>
-          <h1>{data.title}</h1>
-          <p>{data.description}</p>
-        </div>
-      </SingleNewsStyle>
-    )
-  }
   function FriendsComponent() {
     const [settings, openSettings] = useState(false);
 
@@ -209,11 +234,11 @@ export default function Home() {
           <div className="logout-container" onClick={() => {
             localStorage.removeItem("token");
             setState({ token: undefined, player: undefined });
+            router.push("/login");
             Toast.fire({
               text: "See you soon 👋",
               icon: "success"
             });
-            router.push("/login");
             openSettings(false);
           }}>
             <h5><span className="iconify" data-icon="fe:logout" data-inline="false"></span>Logout</h5>
@@ -246,13 +271,7 @@ export default function Home() {
       </AsideFriend>
     )
   }
-  function ArticlesComponent() {
-    return (
-      <div className="news-container">
-        {category === 0 ? games.map(game => ({ ...game.articles[0], gameID: game._id, id: 0 })).map((article, index) => <SingleNews key={index} data={article} />) : games[category - 1].articles.map((article, index) => <SingleNews key={index} data={{ ...article, gameID: games[category - 1]._id, id: index }} />)}
-      </div>
-    )
-  }
+
   return (
     <Section>
       <ReactTooltip />
@@ -284,17 +303,7 @@ export default function Home() {
 
       <MainSection>
         <MainNavbar />
-        <header>
-          <h1>{category === 0 ? "All Categories" : games[category - 1].name}</h1>
-          <ul>
-            <li onClick={() => setCategory(0)} className={category === 0 ? "active-category" : ""}>All categories</li>
-            {games.map(({ name }, index) => (
-              <li className={category === index + 1 ? "active-category" : ""} onClick={() => setCategory(index + 1)} key={index}>{name}</li>
-            ))}
-          </ul>
-        </header>
-        <h2>News &gt;</h2>
-        <ArticlesComponent />
+        <CategoryComponent />
       </MainSection>
 
       <GroupSection open={openAsideGroups}>
