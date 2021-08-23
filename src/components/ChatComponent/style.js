@@ -78,7 +78,7 @@ flex-direction: column;
       font-weight: 500;
       font-size: 13px;
       line-height: 20px;
-      color: #4B5569;
+      color: #b5cdff;
     }
   }
 }
